@@ -1,0 +1,113 @@
+version: "3.3"
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.2
+    environment:
+      - xpack.security.enabled=false
+    volumes:
+      - es:/usr/share/elasticsearch/data
+    networks:
+      - default
+    deploy:
+      labels:
+        - com.df.distribute=true
+        - com.df.notify=true
+        - com.df.port=80
+        - com.df.alertName=mem_limit
+        - com.df.alertIf=@service_mem_limit:0.8
+        - com.df.alertFor=30s
+      resources:
+        reservations:
+          memory: 3000M
+        limits:
+          memory: 3500M
+      placement:
+        constraints: [node.role == worker]
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:5.5.2
+    networks:
+      - default
+    deploy:
+      labels:
+        - com.df.distribute=true
+        - com.df.notify=true
+        - com.df.port=80
+        - com.df.alertName=mem_limit
+        - com.df.alertIf=@service_mem_limit:0.8
+        - com.df.alertFor=30s
+      resources:
+        reservations:
+          memory: 600M
+        limits:
+          memory: 1000M
+    configs:
+      - logstash.conf
+    environment:
+      - LOGSPOUT=ignore
+    command: logstash -f /logstash.conf
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.5.2
+    networks:
+      - default
+      - proxy
+    environment:
+      - xpack.security.enabled=false
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    deploy:
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.usersPassEncrypted=false
+        - com.df.usersSecret=admin
+        - com.df.servicePath=/app,/elasticsearch,/api,/ui,/bundles,/plugins,/status,/es_admin
+        - com.df.port=5601
+        - com.df.alertName=mem_limit
+        - com.df.alertIf=@service_mem_limit:0.8
+        - com.df.alertFor=30s
+      resources:
+        reservations:
+          memory: 600M
+        limits:
+          memory: 1000M
+
+  logspout:
+    image: gliderlabs/logspout:v3.2.2
+    networks:
+      - default
+    environment:
+      - SYSLOG_FORMAT=rfc3164
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: syslog://logstash:51415
+    deploy:
+      mode: global
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.alertName=mem_limit
+        - com.df.alertIf=@service_mem_limit:0.8
+        - com.df.alertFor=30s
+      resources:
+        reservations:
+          memory: 20M
+        limits:
+          memory: 30M
+
+networks:
+  proxy:
+    external: true
+  default:
+    external: false
+
+volumes:
+  es:
+    driver: cloudstor:aws
+    external: false
+
+configs:
+  logstash.conf:
+    external: true

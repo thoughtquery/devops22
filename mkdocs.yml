@@ -1,0 +1,39 @@
+site_name: Docker Flow Monitor
+pages:
+  - Home: index.md
+  - Tutorial:
+    - Running Docker Flow Monitor: tutorial.md
+    - Auto-Scaling Services Using Instrumented Metrics: auto-scaling.md
+  - Configuration: config.md
+  - Usage: usage.md
+  - About:
+    - Release Notes: release-notes.md
+    - License: license.md
+repo_url: https://github.com/vfarcic/docker-flow-monitor
+site_author: Viktor Farcic
+copyright: Copyright © 2017 Viktor Farcic
+strict: true
+theme: 'material'
+extra:
+  palette:
+    primary: 'blue'
+    accent: 'light blue'
+markdown_extensions:
+  - toc
+  - admonition
+  - codehilite(guess_lang=false)
+  - toc(permalink=true)
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.betterem(smart_enable=all)
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist(custom_checkbox=true)
+  - pymdownx.tilde

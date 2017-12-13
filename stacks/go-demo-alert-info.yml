@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  main:
+    image: vfarcic/go-demo
+    environment:
+      - DB=db
+    networks:
+      - proxy
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.servicePath=/demo
+        - com.df.port=8080
+        - com.df.alertName=mem_limit
+        - com.df.alertIf=container_memory_usage_bytes{container_label_com_docker_swarm_service_name="go-demo_main"}/container_spec_memory_limit_bytes{container_label_com_docker_swarm_service_name="go-demo_main"} > 0.8
+        - com.df.alertFor=30s
+        - com.df.alertLabels=severity=high,receiver=system
+        - com.df.alertAnnotations=summary=Service memory is high,description=Do something or start panicking
+      resources:
+        reservations:
+          memory: 5M
+        limits:
+          memory: 10M
+
+  db:
+    image: mongo
+    networks:
+      - proxy
+    deploy:
+      resources:
+        reservations:
+          memory: 40M
+        limits:
+          memory: 80M
+
+networks:
+  proxy:
+    external: true
